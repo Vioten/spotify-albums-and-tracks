@@ -1,4 +1,3 @@
-// Self envoking function! once the document is ready, bootstrap our application.
 // We do this to make sure that all the HTML is rendered before we do things
 // like attach event listeners and any dom manipulation.
 (function() {
@@ -8,7 +7,7 @@
 })();
 
 /**
-  This function bootstraps the spotify request functionality.
+ This function bootstraps the spotify request functionality.
 */
 function bootstrapSpotifySearch() {
 
@@ -52,7 +51,7 @@ function bootstrapSpotifySearch() {
     // Attach the callback for failure
     // (Again, we could have used the error callback direcetly)
     spotifyQueryRequest.fail(function(error) {
-      console.log("Something Failed During Spotify Q Request:")
+      console.log("Something Failed During Spotify Q Request:");
       console.log(error);
     });
   });
@@ -61,24 +60,57 @@ function bootstrapSpotifySearch() {
 /* COMPLETE THIS FUNCTION! */
 function displayAlbumsAndTracks(event) {
   var appendToMe = $('#albums-and-tracks');
+
   var artistName = $(event.target).attr('data-spotify-id');
+
   var getAlbums = $.ajax({
     type: 'GET',
     dataType: 'JSON',
-    url: 'https://api.spotify.com/v1/artists/' + artistName + '/albums'
+    url: "https://api.spotify.com/v1/artists/" + artistName + "/albums"
   })
+
   getAlbums.done(function(data) {
-    console.log(data);
-    for (var i = 0; i < data.items.length; i++) {
-      appendToMe.append("<p>" + data.items[i].name + " " + data.items[i].id +
-        "</p>");
-    }
+    // append the albums to appendToMe
+
+    var albums = data.items;
+
+    albums.forEach(function(album) {
+      var albumName = album.name;
+      var albumImage = album.images[0];
+      var albumLi = $("<ol>" + albumName + " - " + "<img src='" +
+        albumImage.url + "' alt=''>" + "</ol>")
+      appendToMe.append(albumLi);
+
+      $.ajax({
+        type: 'GET',
+        dataType: 'JSON',
+        url: "https://api.spotify.com/v1/albums/" + album.id
+      }).done(function(albumDate) {
+        albumLi.prepend("<p>" + albumDate.release_date + "</p>");
+      })
+
+      $.ajax({
+        type: 'GET',
+        dataType: 'JSON',
+        url: "https://api.spotify.com/v1/albums/" + album.id +
+          "/tracks"
+      }).done(function(data) {
+        var albumTracks = data.items;
+        albumTracks.forEach(function(albumTrack) {
+          albumLi.append("<li> " + albumTrack.name + " </li>");
+        })
+      })
+
+      // GET TRACKS AND APPEND TO EACH ALBUM LI
+
+    })
+
   })
 
+  console.log(); //.attr('data-spotify-id'));
 
-  // These two lines can be deleted. They're mostly for show.
-  console.log("you clicked on:");
-  console.log($(event.target).attr('data-spotify-id')); //.attr('data-spotify-id'));
+
+
 }
 
 /* YOU MAY WANT TO CREATE HELPER FUNCTIONS OF YOUR OWN */
